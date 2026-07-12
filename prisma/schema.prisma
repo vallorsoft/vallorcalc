@@ -1,0 +1,203 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  VIEWER
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  role         Role          @default(VIEWER)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  calculations Calculation[]
+}
+
+model SystemSettings {
+  id                  String   @id @default("singleton")
+  annualKmTarget      Float    @default(120000)
+  workingWeeksPerYear Int      @default(48)
+  vatRate             Float    @default(0.21)
+  excisaDiscountLei   Float?
+  excisaDiscountType  String? // "gross" | "net"
+  fuelDiscountLei     Float?
+  fuelDiscountType    String? // "gross" | "net"
+  updatedAt           DateTime @updatedAt
+}
+
+model Truck {
+  id           String          @id @default(cuid())
+  name         String
+  licensePlate String
+  year         Int?
+  notes        String?
+  active       Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  costItems    TruckCostItem[]
+  pairings     VehiclePairing[]
+  calculations Calculation[]
+}
+
+model TruckCostItem {
+  id             String   @id @default(cuid())
+  truckId        String
+  truck          Truck    @relation(fields: [truckId], references: [id], onDelete: Cascade)
+  name           String
+  basisType      String // "km" | "time"
+  intervalKm     Float?
+  intervalMonths Int?
+  amountLei      Float
+  isGross        Boolean  @default(true)
+  notes          String?
+  createdAt      DateTime @default(now())
+}
+
+model Trailer {
+  id           String            @id @default(cuid())
+  name         String
+  licensePlate String
+  year         Int?
+  notes        String?
+  active       Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  costItems    TrailerCostItem[]
+  pairings     VehiclePairing[]
+  calculations Calculation[]
+}
+
+model TrailerCostItem {
+  id             String   @id @default(cuid())
+  trailerId      String
+  trailer        Trailer  @relation(fields: [trailerId], references: [id], onDelete: Cascade)
+  name           String
+  basisType      String // "km" | "time"
+  intervalKm     Float?
+  intervalMonths Int?
+  amountLei      Float
+  isGross        Boolean  @default(true)
+  notes          String?
+  createdAt      DateTime @default(now())
+}
+
+model Driver {
+  id             String              @id @default(cuid())
+  name           String
+  phone          String?
+  licenseNumber  String?
+  licenseExpiry  DateTime?
+  notes          String?
+  active         Boolean             @default(true)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  costItems      DriverCostItem[]
+  pairingDrivers PairingDriver[]
+  calculations   CalculationDriver[]
+}
+
+model DriverCostItem {
+  id        String   @id @default(cuid())
+  driverId  String
+  driver    Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  name      String
+  amountLei Float
+  isGross   Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model VehiclePairing {
+  id        String          @id @default(cuid())
+  name      String
+  truckId   String
+  truck     Truck           @relation(fields: [truckId], references: [id])
+  trailerId String
+  trailer   Trailer         @relation(fields: [trailerId], references: [id])
+  drivers   PairingDriver[]
+  createdAt DateTime        @default(now())
+}
+
+model PairingDriver {
+  id        String         @id @default(cuid())
+  pairingId String
+  pairing   VehiclePairing @relation(fields: [pairingId], references: [id], onDelete: Cascade)
+  driverId  String
+  driver    Driver         @relation(fields: [driverId], references: [id])
+}
+
+model CompanyCostItem {
+  id             String   @id @default(cuid())
+  name           String
+  amountLei      Float
+  isGross        Boolean  @default(true)
+  basisType      String   @default("time") // "time" | "km"
+  intervalMonths Int?     @default(12)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Calculation {
+  id          String @id @default(cuid())
+  name        String?
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id])
+
+  truckId   String
+  truck     Truck   @relation(fields: [truckId], references: [id])
+  trailerId String
+  trailer   Trailer @relation(fields: [trailerId], references: [id])
+  drivers   CalculationDriver[]
+
+  startDate DateTime
+  tripDays  Int
+  tripKm    Float
+
+  fuelMethod             String // "per_liter" | "fixed"
+  fuelLiterPer100km      Float?
+  fuelPricePerLiterGross Float?
+  fuelTotalGross         Float?
+
+  excisaApplied       Boolean @default(false)
+  fuelDiscountApplied Boolean @default(false)
+
+  tolls CalculationToll[]
+
+  activeTrucksCount Int @default(1)
+
+  freightRevenueLei Float?
+  freightRevenueEur Float?
+
+  bnrEurLei  Float
+  resultJson Json?
+
+  savedAt   DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model CalculationDriver {
+  id            String      @id @default(cuid())
+  calculationId String
+  calculation   Calculation @relation(fields: [calculationId], references: [id], onDelete: Cascade)
+  driverId      String
+  driver        Driver      @relation(fields: [driverId], references: [id])
+}
+
+model CalculationToll {
+  id            String      @id @default(cuid())
+  calculationId String
+  calculation   Calculation @relation(fields: [calculationId], references: [id], onDelete: Cascade)
+  description   String?
+  amountLei     Float?
+  amountEur     Float?
+  inputCurrency String // "lei" | "eur"
+}
