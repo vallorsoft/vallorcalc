@@ -65,7 +65,10 @@ export function ResultPanel({ result, bnrRate }: Props) {
 
           {result.fuelGross > 0 && (
             <div className="px-4 py-2.5 flex items-center justify-between text-sm bg-amber-50">
-              <span className="text-amber-700">Üzemanyag</span>
+              <span className="text-amber-700">
+                Üzemanyag
+                {result.liters > 0 && <span className="text-xs text-amber-500 ml-1">({fmt(result.liters)} L)</span>}
+              </span>
               <div className="text-right">
                 <span className="font-medium text-amber-800">{fmt(result.fuelNet)} LEI</span>
                 <span className="text-xs text-amber-500 ml-2">+TVA {fmt(result.fuelVat)}</span>
@@ -73,12 +76,17 @@ export function ResultPanel({ result, bnrRate }: Props) {
             </div>
           )}
 
-          {result.discountNet > 0 && (
+          {result.excisaDiscountNet > 0 && (
             <div className="px-4 py-2.5 flex items-center justify-between text-sm bg-green-50">
-              <span className="text-green-700">Kedvezmény (levonás)</span>
-              <div className="text-right">
-                <span className="font-medium text-green-700">− {fmt(result.discountNet)} LEI</span>
-              </div>
+              <span className="text-green-700">Acciza kedvezmény ({fmt(result.liters)} L)</span>
+              <span className="font-medium text-green-700">− {fmt(result.excisaDiscountNet)} LEI</span>
+            </div>
+          )}
+
+          {result.fuelDiscountNet > 0 && (
+            <div className="px-4 py-2.5 flex items-center justify-between text-sm bg-green-50">
+              <span className="text-green-700">Üzemanyag kedvezmény ({fmt(result.liters)} L)</span>
+              <span className="font-medium text-green-700">− {fmt(result.fuelDiscountNet)} LEI</span>
             </div>
           )}
 

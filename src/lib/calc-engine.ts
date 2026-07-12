@@ -23,7 +23,9 @@ export interface CalcInput {
   fuelLiterPer100km?: number;
   fuelPricePerLiterGross?: number;
   fuelTotalGross?: number;
+  fuelLiters?: number | null; // fix módban megadható a tankolt liter a kedvezményhez
 
+  // A kedvezmények literenkénti értékek (LEI/liter), a felhasznált literrel szorozva
   excisaApplied: boolean;
   excisaDiscountLei?: number | null;
   excisaDiscountType?: string | null;
@@ -54,6 +56,9 @@ export interface CalcResult {
   fuelNet: number;
   fuelVat: number;
   fuelGross: number;
+  liters: number;
+  excisaDiscountNet: number;
+  fuelDiscountNet: number;
   discountNet: number;
   tollNet: number;
   totalNet: number;
@@ -110,25 +115,36 @@ export function calculate(input: CalcInput): CalcResult {
     if (c.net > 0) addLine(`Céges – ${c.name}`, c.net);
   }
 
-  // Fuel
+  // Fuel + a felhasznált liter (a literenkénti kedvezményekhez)
   let fuelGross = 0;
+  let liters = 0;
   if (input.fuelMethod === "per_liter" && input.fuelLiterPer100km && input.fuelPricePerLiterGross) {
-    const liters = (input.tripKm / 100) * input.fuelLiterPer100km;
+    liters = (input.tripKm / 100) * input.fuelLiterPer100km;
     fuelGross = liters * input.fuelPricePerLiterGross;
   } else if (input.fuelTotalGross) {
     fuelGross = input.fuelTotalGross;
+    // Fix módban: ha megadták a tankolt litert, azt használjuk; különben a diesel árból számoljuk
+    if (input.fuelLiters && input.fuelLiters > 0) {
+      liters = input.fuelLiters;
+    } else if (input.fuelPricePerLiterGross && input.fuelPricePerLiterGross > 0) {
+      liters = fuelGross / input.fuelPricePerLiterGross;
+    }
   }
   const fuelNet = grossToNet(fuelGross);
   const fuelVat = grossToVat(fuelGross);
 
-  // Discounts (reduce cost = negative)
-  let discountNet = 0;
-  if (input.excisaApplied && input.excisaDiscountLei) {
-    discountNet += toNet(input.excisaDiscountLei, input.excisaDiscountType === "gross");
+  // Kedvezmények: literenkénti érték (LEI/liter) × felhasznált liter (költséget csökkent)
+  let excisaDiscountNet = 0;
+  let fuelDiscountNet = 0;
+  if (input.excisaApplied && input.excisaDiscountLei && liters > 0) {
+    const amount = input.excisaDiscountLei * liters;
+    excisaDiscountNet = toNet(amount, input.excisaDiscountType === "gross");
   }
-  if (input.fuelDiscountApplied && input.fuelDiscountLei) {
-    discountNet += toNet(input.fuelDiscountLei, input.fuelDiscountType === "gross");
+  if (input.fuelDiscountApplied && input.fuelDiscountLei && liters > 0) {
+    const amount = input.fuelDiscountLei * liters;
+    fuelDiscountNet = toNet(amount, input.fuelDiscountType === "gross");
   }
+  const discountNet = excisaDiscountNet + fuelDiscountNet;
 
   // Tolls
   const tollNet = input.tolls.reduce((sum, t) => sum + grossToNet(t.amountLei), 0);
@@ -155,6 +171,9 @@ export function calculate(input: CalcInput): CalcResult {
     fuelNet,
     fuelVat,
     fuelGross,
+    liters,
+    excisaDiscountNet,
+    fuelDiscountNet,
     discountNet,
     tollNet,
     totalNet,

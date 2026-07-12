@@ -32,6 +32,7 @@ export function CalcForm({ trucks, trailers, drivers, pairings, settings, totalT
   const [fuelLiterPer100km, setFuelLiterPer100km] = useState("30");
   const [fuelPricePerLiterGross, setFuelPricePerLiterGross] = useState("");
   const [fuelTotalGross, setFuelTotalGross] = useState("");
+  const [fuelLiters, setFuelLiters] = useState("");
   const [excisaApplied, setExcisaApplied] = useState(false);
   const [fuelDiscountApplied, setFuelDiscountApplied] = useState(false);
   const [tolls, setTolls] = useState<Toll[]>([]);
@@ -79,6 +80,7 @@ export function CalcForm({ trucks, trailers, drivers, pairings, settings, totalT
       fuelLiterPer100km: fuelMethod === "per_liter" ? parseFloat(fuelLiterPer100km) : undefined,
       fuelPricePerLiterGross: fuelMethod === "per_liter" ? parseFloat(fuelPricePerLiterGross) : undefined,
       fuelTotalGross: fuelMethod === "fixed" ? parseFloat(fuelTotalGross) : undefined,
+      fuelLiters: fuelMethod === "fixed" && fuelLiters ? parseFloat(fuelLiters) : undefined,
       excisaApplied, fuelDiscountApplied,
       tolls: tolls.map((t) => ({
         description: t.description,
@@ -235,24 +237,31 @@ export function CalcForm({ trucks, trailers, drivers, pairings, settings, totalT
             </div>
           </div>
         ) : (
-          <div>
-            <label className="label">Összes üzemanyag költség (LEI, bruttó)</label>
-            <input type="number" value={fuelTotalGross} onChange={(e) => setFuelTotalGross(e.target.value)} className="input" placeholder="pl. 3200" />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Összes üzemanyag költség (LEI, bruttó)</label>
+              <input type="number" value={fuelTotalGross} onChange={(e) => setFuelTotalGross(e.target.value)} className="input" placeholder="pl. 3200" />
+            </div>
+            <div>
+              <label className="label">Tankolt liter (kedvezményhez, opc.)</label>
+              <input type="number" value={fuelLiters} onChange={(e) => setFuelLiters(e.target.value)} className="input" step="0.1" placeholder="pl. 420" />
+            </div>
           </div>
         )}
 
-        {/* Discounts */}
+        {/* Discounts – literenkénti kedvezmények */}
         <div className="space-y-2 pt-2 border-t border-gray-100">
+          <p className="text-xs text-gray-400">A kedvezmények literenkénti értékek, a felhasznált literrel szorozva.</p>
           {settings.excisaDiscountLei && (
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={excisaApplied} onChange={(e) => setExcisaApplied(e.target.checked)} className="rounded" />
-              <span className="text-sm text-gray-700">Acciza kedvezmény alkalmazása ({settings.excisaDiscountLei} LEI)</span>
+              <span className="text-sm text-gray-700">Acciza kedvezmény ({settings.excisaDiscountLei} LEI/liter)</span>
             </label>
           )}
           {settings.fuelDiscountLei && (
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={fuelDiscountApplied} onChange={(e) => setFuelDiscountApplied(e.target.checked)} className="rounded" />
-              <span className="text-sm text-gray-700">Üzemanyag kedvezmény ({settings.fuelDiscountLei} LEI)</span>
+              <span className="text-sm text-gray-700">Üzemanyag kedvezmény ({settings.fuelDiscountLei} LEI/liter)</span>
             </label>
           )}
         </div>

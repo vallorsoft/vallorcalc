@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
     fuelLiterPer100km: data.fuelLiterPer100km,
     fuelPricePerLiterGross: data.fuelPricePerLiterGross,
     fuelTotalGross: data.fuelTotalGross,
+    fuelLiters: data.fuelLiters ?? null,
     excisaApplied: data.excisaApplied ?? false,
     excisaDiscountLei: settings.excisaDiscountLei,
     excisaDiscountType: settings.excisaDiscountType,
