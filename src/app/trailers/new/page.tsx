@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { TrailerForm } from "@/components/trailers/TrailerForm";
 
 export default function NewTrailerPage() {

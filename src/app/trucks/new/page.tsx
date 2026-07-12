@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { TruckForm } from "@/components/trucks/TruckForm";
 
 export default function NewTruckPage() {
