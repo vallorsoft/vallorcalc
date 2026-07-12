@@ -1,6 +1,6 @@
-FROM node:20-alpine
+FROM node:20-slim
 WORKDIR /app
-RUN apk add --no-cache openssl
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
 RUN npm ci
@@ -14,7 +14,6 @@ ENV NEXTAUTH_SECRET="build-time-placeholder"
 ENV NEXTAUTH_URL="http://localhost:3000"
 RUN npm run build
 
-# Copy public and static into standalone
 RUN cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/
 
 ENV NODE_ENV=production

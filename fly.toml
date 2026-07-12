@@ -1,4 +1,3 @@
-# fly.toml - VállorCalc Fly.io konfiguráció
 app = "vallorcalc"
 primary_region = "fra"
 
@@ -7,6 +6,7 @@ primary_region = "fra"
 [env]
   NODE_ENV = "production"
   PORT = "8080"
+  HOSTNAME = "0.0.0.0"
   NEXTAUTH_URL = "https://vallorcalc.fly.dev"
 
 [http_service]
@@ -20,6 +20,13 @@ primary_region = "fra"
     type = "connections"
     hard_limit = 25
     soft_limit = 20
+
+  [[http_service.checks]]
+    grace_period = "30s"
+    interval = "15s"
+    method = "GET"
+    path = "/login"
+    timeout = "10s"
 
 [[vm]]
   memory = "512mb"
