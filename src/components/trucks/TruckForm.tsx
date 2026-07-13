@@ -106,19 +106,21 @@ export function TruckForm({ initial }: TruckFormProps) {
         </div>
         <div className="text-xs text-gray-400 mb-2">km-alapú: gumiabroncs, fék, karbantartás | idő-alapú: biztosítás, lízing stb.</div>
         {costs.map((c, i) => (
-          <div key={i} className="border border-gray-100 rounded-lg p-3 space-y-2 bg-gray-50">
-            <div className="flex gap-2">
-              <input value={c.name} onChange={(e) => updateCost(i, "name", e.target.value)} placeholder="Tétel neve" className="input flex-1 text-sm" />
-              <select value={c.basisType} onChange={(e) => updateCost(i, "basisType", e.target.value)} className="input text-sm w-28">
-                <option value="km">km-alapú</option>
-                <option value="time">idő-alapú</option>
-              </select>
-              <button type="button" onClick={() => removeCost(i)} className="text-red-400 hover:text-red-600 px-2">×</button>
+          <div key={i} className="border border-gray-100 rounded-lg p-3 space-y-3 bg-gray-50">
+            <div className="flex gap-2 items-center">
+              <div className="flex-1">
+                <label className="text-xs text-gray-500">Tétel neve</label>
+                <input value={c.name} onChange={(e) => updateCost(i, "name", e.target.value)} placeholder="pl. Gumiabroncs" className="input text-sm" />
+              </div>
+              <button type="button" onClick={() => removeCost(i)} className="text-red-400 hover:text-red-600 px-2 pt-5 text-lg">×</button>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-xs text-gray-500">Összeg (LEI)</label>
-                <input type="number" value={c.amountLei} onChange={(e) => updateCost(i, "amountLei", parseFloat(e.target.value))} className="input text-sm" />
+                <label className="text-xs text-gray-500">Alap</label>
+                <select value={c.basisType} onChange={(e) => updateCost(i, "basisType", e.target.value)} className="input text-sm">
+                  <option value="km">km-alapú</option>
+                  <option value="time">idő-alapú</option>
+                </select>
               </div>
               <div>
                 <label className="text-xs text-gray-500">Típus</label>
@@ -126,6 +128,10 @@ export function TruckForm({ initial }: TruckFormProps) {
                   <option value="gross">Bruttó</option>
                   <option value="net">Nettó</option>
                 </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500">Összeg (LEI)</label>
+                <input type="number" value={c.amountLei} onChange={(e) => updateCost(i, "amountLei", parseFloat(e.target.value))} className="input text-sm" />
               </div>
               {c.basisType === "km" ? (
                 <div>

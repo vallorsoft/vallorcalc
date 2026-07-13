@@ -96,19 +96,21 @@ export function TrailerForm({ initial }: TrailerFormProps) {
           <button type="button" onClick={addCost} className="text-sm text-blue-700 hover:underline">+ Hozzáadás</button>
         </div>
         {costs.map((c, i) => (
-          <div key={i} className="border border-gray-100 rounded-lg p-3 space-y-2 bg-gray-50">
-            <div className="flex gap-2">
-              <input value={c.name} onChange={(e) => updateCost(i, "name", e.target.value)} placeholder="Tétel neve" className="input flex-1 text-sm" />
-              <select value={c.basisType} onChange={(e) => updateCost(i, "basisType", e.target.value)} className="input text-sm w-28">
-                <option value="km">km-alapú</option>
-                <option value="time">idő-alapú</option>
-              </select>
-              <button type="button" onClick={() => removeCost(i)} className="text-red-400 hover:text-red-600 px-2">×</button>
+          <div key={i} className="border border-gray-100 rounded-lg p-3 space-y-3 bg-gray-50">
+            <div className="flex gap-2 items-center">
+              <div className="flex-1">
+                <label className="text-xs text-gray-500">Tétel neve</label>
+                <input value={c.name} onChange={(e) => updateCost(i, "name", e.target.value)} placeholder="pl. Gumiabroncs" className="input text-sm" />
+              </div>
+              <button type="button" onClick={() => removeCost(i)} className="text-red-400 hover:text-red-600 px-2 pt-5 text-lg">×</button>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-xs text-gray-500">Összeg (LEI)</label>
-                <input type="number" value={c.amountLei} onChange={(e) => updateCost(i, "amountLei", parseFloat(e.target.value))} className="input text-sm" />
+                <label className="text-xs text-gray-500">Alap</label>
+                <select value={c.basisType} onChange={(e) => updateCost(i, "basisType", e.target.value)} className="input text-sm">
+                  <option value="km">km-alapú</option>
+                  <option value="time">idő-alapú</option>
+                </select>
               </div>
               <div>
                 <label className="text-xs text-gray-500">Típus</label>
@@ -117,15 +119,19 @@ export function TrailerForm({ initial }: TrailerFormProps) {
                   <option value="net">Nettó</option>
                 </select>
               </div>
+              <div>
+                <label className="text-xs text-gray-500">Összeg (LEI)</label>
+                <input type="number" value={c.amountLei} onChange={(e) => updateCost(i, "amountLei", parseFloat(e.target.value))} className="input text-sm" />
+              </div>
               {c.basisType === "km" ? (
                 <div>
                   <label className="text-xs text-gray-500">Élettartam (km)</label>
-                  <input type="number" value={c.intervalKm ?? ""} onChange={(e) => updateCost(i, "intervalKm", e.target.value ? parseFloat(e.target.value) : null)} className="input text-sm" />
+                  <input type="number" value={c.intervalKm ?? ""} onChange={(e) => updateCost(i, "intervalKm", e.target.value ? parseFloat(e.target.value) : null)} className="input text-sm" placeholder="pl. 240000" />
                 </div>
               ) : (
                 <div>
                   <label className="text-xs text-gray-500">Időszak (hónap)</label>
-                  <input type="number" value={c.intervalMonths ?? ""} onChange={(e) => updateCost(i, "intervalMonths", e.target.value ? parseInt(e.target.value) : null)} className="input text-sm" />
+                  <input type="number" value={c.intervalMonths ?? ""} onChange={(e) => updateCost(i, "intervalMonths", e.target.value ? parseInt(e.target.value) : null)} className="input text-sm" placeholder="pl. 12" />
                 </div>
               )}
             </div>

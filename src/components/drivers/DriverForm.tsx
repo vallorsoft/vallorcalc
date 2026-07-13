@@ -95,14 +95,27 @@ export function DriverForm({ initial }: DriverFormProps) {
         </div>
         <p className="text-xs text-gray-400">Fizetés, napidíj, adók és egyéb havi fix tételek</p>
         {costs.map((c, i) => (
-          <div key={i} className="flex gap-2 items-center">
-            <input value={c.name} onChange={(e) => updateCost(i, "name", e.target.value)} placeholder="Megnevezés" className="input flex-1 text-sm" />
-            <input type="number" value={c.amountLei} onChange={(e) => updateCost(i, "amountLei", parseFloat(e.target.value))} className="input w-28 text-sm" placeholder="LEI" />
-            <select value={c.isGross ? "gross" : "net"} onChange={(e) => updateCost(i, "isGross", e.target.value === "gross")} className="input text-sm w-24">
-              <option value="gross">Bruttó</option>
-              <option value="net">Nettó</option>
-            </select>
-            <button type="button" onClick={() => setCosts(costs.filter((_, idx) => idx !== i))} className="text-red-400 hover:text-red-600">×</button>
+          <div key={i} className="border border-gray-100 rounded-lg p-3 space-y-3 bg-gray-50">
+            <div className="flex gap-2 items-center">
+              <div className="flex-1">
+                <label className="text-xs text-gray-500">Megnevezés</label>
+                <input value={c.name} onChange={(e) => updateCost(i, "name", e.target.value)} placeholder="pl. Fizetés" className="input text-sm" />
+              </div>
+              <button type="button" onClick={() => setCosts(costs.filter((_, idx) => idx !== i))} className="text-red-400 hover:text-red-600 px-2 pt-5 text-lg">×</button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs text-gray-500">Összeg (LEI)</label>
+                <input type="number" value={c.amountLei} onChange={(e) => updateCost(i, "amountLei", parseFloat(e.target.value))} className="input text-sm" placeholder="LEI" />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500">Típus</label>
+                <select value={c.isGross ? "gross" : "net"} onChange={(e) => updateCost(i, "isGross", e.target.value === "gross")} className="input text-sm">
+                  <option value="gross">Bruttó</option>
+                  <option value="net">Nettó</option>
+                </select>
+              </div>
+            </div>
           </div>
         ))}
       </div>
