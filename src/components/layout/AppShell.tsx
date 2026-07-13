@@ -11,6 +11,7 @@ const navItems = [
   { href: "/trailers", label: "Pótkocsik", icon: "🚌" },
   { href: "/drivers", label: "Sofőrök", icon: "👤" },
   { href: "/settings", label: "Beállítások", icon: "⚙️", adminOnly: true },
+  { href: "/users", label: "Felhasználók", icon: "👥", adminOnly: true },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
