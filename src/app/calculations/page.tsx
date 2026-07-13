@@ -40,7 +40,7 @@ export default async function CalculationsPage() {
                     </div>
                     <div className="text-sm text-gray-500 mt-0.5">
                       {c.drivers.map((d) => d.driver.name).join(", ")} •{" "}
-                      {new Date(c.startDate).toLocaleDateString("hu-HU")} • {c.tripKm} km • {c.tripDays} nap
+                      {c.tripKm} km • {c.tripDays / 7} hét
                     </div>
                   </div>
                   <div className="text-right ml-4">

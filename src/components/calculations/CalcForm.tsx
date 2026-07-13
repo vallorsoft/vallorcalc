@@ -25,8 +25,7 @@ export function CalcForm({ trucks, trailers, drivers, pairings, settings, totalT
   const [truckId, setTruckId] = useState("");
   const [trailerId, setTrailerId] = useState("");
   const [driverIds, setDriverIds] = useState<string[]>([]);
-  const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]);
-  const [tripDays, setTripDays] = useState(5);
+  const [tripWeeks, setTripWeeks] = useState(1);
   const [tripKm, setTripKm] = useState("");
   const [fuelMethod, setFuelMethod] = useState<"per_liter" | "fixed">("per_liter");
   const [fuelLiterPer100km, setFuelLiterPer100km] = useState("30");
@@ -75,7 +74,7 @@ export function CalcForm({ trucks, trailers, drivers, pairings, settings, totalT
     setLoading(true);
     const payload = {
       truckId, trailerId, driverIds,
-      startDate, tripDays, tripKm: parseFloat(tripKm),
+      tripWeeks, tripDays: tripWeeks * 7, tripKm: parseFloat(tripKm),
       fuelMethod,
       fuelLiterPer100km: fuelMethod === "per_liter" ? parseFloat(fuelLiterPer100km) : undefined,
       fuelPricePerLiterGross: fuelMethod === "per_liter" ? parseFloat(fuelPricePerLiterGross) : undefined,
@@ -198,14 +197,11 @@ export function CalcForm({ trucks, trailers, drivers, pairings, settings, totalT
       {/* Trip details */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
         <h2 className="font-semibold text-gray-800">Fuvar adatok</h2>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="label">Kezdő dátum</label>
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="input" />
-          </div>
-          <div>
-            <label className="label">Napok száma *</label>
-            <input type="number" value={tripDays} onChange={(e) => setTripDays(parseInt(e.target.value))} className="input" min={1} />
+            <label className="label">Hetek száma *</label>
+            <input type="number" value={tripWeeks} onChange={(e) => setTripWeeks(parseFloat(e.target.value) || 0)} className="input" min={0} step="0.5" placeholder="pl. 2" />
+            <p className="text-xs text-gray-400 mt-1">A rendszer hetekben számol (48 hét / év)</p>
           </div>
           <div>
             <label className="label">Kilométer *</label>

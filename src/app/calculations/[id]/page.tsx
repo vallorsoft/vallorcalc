@@ -26,7 +26,7 @@ export default async function CalcDetailPage({ params }: { params: Promise<{ id:
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{calc.name || `${calc.truck.name} + ${calc.trailer.name}`}</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {new Date(calc.startDate).toLocaleDateString("hu-HU")} • {calc.tripKm} km • {calc.tripDays} nap
+            {calc.tripKm} km • {calc.tripDays / 7} hét
           </p>
         </div>
         <div className="flex gap-2">

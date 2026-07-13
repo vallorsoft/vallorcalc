@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
       truckId: data.truckId,
       trailerId: data.trailerId,
       drivers: { create: (data.driverIds ?? []).map((did: string) => ({ driverId: did })) },
-      startDate: new Date(data.startDate),
+      startDate: data.startDate ? new Date(data.startDate) : new Date(),
       tripDays: data.tripDays,
       tripKm: data.tripKm,
       fuelMethod: data.fuelMethod,
