@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   if (!truck || !trailer) return NextResponse.json({ error: "Vehicle not found" }, { status: 400 });
 
   const driverCosts = drivers.flatMap((d) =>
-    d.costItems.map((ci) => ({ name: `${d.name} – ${ci.name}`, amountLei: ci.amountLei, isGross: ci.isGross }))
+    d.costItems.map((ci) => ({ name: `${d.name} – ${ci.name}`, amountLei: ci.amountLei, vatApplicable: ci.vatApplicable }))
   );
 
   const input: CalcInput = {
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       intervalKm: c.intervalKm,
       intervalMonths: c.intervalMonths,
       amountLei: c.amountLei,
-      isGross: c.isGross,
+      vatApplicable: c.vatApplicable,
     })),
     trailerCosts: trailer.costItems.map((c) => ({
       name: c.name,
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       intervalKm: c.intervalKm,
       intervalMonths: c.intervalMonths,
       amountLei: c.amountLei,
-      isGross: c.isGross,
+      vatApplicable: c.vatApplicable,
     })),
     driverCosts,
     fuelMethod: data.fuelMethod,
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
       intervalKm: undefined,
       intervalMonths: c.intervalMonths,
       amountLei: c.amountLei,
-      isGross: c.isGross,
+      vatApplicable: c.vatApplicable,
     })),
     freightRevenueLei: data.freightRevenueLei ?? null,
     bnrEurLei: data.bnrEurLei,

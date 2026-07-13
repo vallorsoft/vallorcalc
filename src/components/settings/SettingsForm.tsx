@@ -4,8 +4,8 @@ import { useState } from "react";
 interface CompanyCost {
   id: string;
   name: string;
-  amountLei: number;
-  isGross: boolean;
+  amountLei: number; // mindig nettó
+  vatApplicable: boolean;
   basisType: string;
   intervalMonths: number | null;
 }
@@ -33,7 +33,7 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
   const [saved, setSaved] = useState(false);
 
   const [costs, setCosts] = useState<CompanyCost[]>(initCosts);
-  const [newCost, setNewCost] = useState({ name: "", amountLei: "", isGross: true, basisType: "time", intervalMonths: "12" });
+  const [newCost, setNewCost] = useState({ name: "", amountLei: "", vatApplicable: false, basisType: "time", intervalMonths: "12" });
   const [addingCost, setAddingCost] = useState(false);
 
   async function saveSettings(e: React.FormEvent) {
@@ -63,7 +63,7 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
       body: JSON.stringify({
         name: newCost.name,
         amountLei: parseFloat(newCost.amountLei),
-        isGross: newCost.isGross,
+        vatApplicable: newCost.vatApplicable,
         basisType: newCost.basisType,
         intervalMonths: parseInt(newCost.intervalMonths),
       }),
@@ -71,7 +71,7 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
     if (res.ok) {
       const item = await res.json();
       setCosts([...costs, item]);
-      setNewCost({ name: "", amountLei: "", isGross: true, basisType: "time", intervalMonths: "12" });
+      setNewCost({ name: "", amountLei: "", vatApplicable: false, basisType: "time", intervalMonths: "12" });
       setAddingCost(false);
     }
   }
@@ -100,8 +100,8 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
           <h3 className="text-sm font-semibold text-gray-700">Acciza kedvezmény</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">Összeg (LEI)</label>
-              <input type="number" value={excisaLei} onChange={(e) => setExcisaLei(e.target.value)} className="input" placeholder="0" />
+              <label className="label">Összeg (LEI/liter)</label>
+              <input type="number" value={excisaLei} onChange={(e) => setExcisaLei(e.target.value)} className="input" step="0.01" placeholder="pl. 0.5" />
             </div>
             <div>
               <label className="label">Típus</label>
@@ -117,8 +117,8 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
           <h3 className="text-sm font-semibold text-gray-700">Üzemanyag kedvezmény</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">Összeg (LEI)</label>
-              <input type="number" value={fuelDiscLei} onChange={(e) => setFuelDiscLei(e.target.value)} className="input" placeholder="0" />
+              <label className="label">Összeg (LEI/liter)</label>
+              <input type="number" value={fuelDiscLei} onChange={(e) => setFuelDiscLei(e.target.value)} className="input" step="0.01" placeholder="pl. 0.3" />
             </div>
             <div>
               <label className="label">Típus</label>
@@ -149,16 +149,16 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
           <div className="border border-blue-200 rounded-lg p-3 bg-blue-50 space-y-2">
             <div className="grid grid-cols-2 gap-2">
               <input value={newCost.name} onChange={(e) => setNewCost({ ...newCost, name: e.target.value })} placeholder="Megnevezés" className="input text-sm col-span-2" />
-              <input type="number" value={newCost.amountLei} onChange={(e) => setNewCost({ ...newCost, amountLei: e.target.value })} placeholder="Összeg LEI" className="input text-sm" />
-              <select value={newCost.isGross ? "gross" : "net"} onChange={(e) => setNewCost({ ...newCost, isGross: e.target.value === "gross" })} className="input text-sm">
-                <option value="gross">Bruttó</option>
-                <option value="net">Nettó</option>
-              </select>
+              <input type="number" value={newCost.amountLei} onChange={(e) => setNewCost({ ...newCost, amountLei: e.target.value })} placeholder="Összeg LEI (nettó)" className="input text-sm" />
               <select value={newCost.basisType} onChange={(e) => setNewCost({ ...newCost, basisType: e.target.value })} className="input text-sm">
                 <option value="time">Idő-alapú</option>
                 <option value="km">km-alapú</option>
               </select>
-              <input type="number" value={newCost.intervalMonths} onChange={(e) => setNewCost({ ...newCost, intervalMonths: e.target.value })} placeholder="Időszak (hónap)" className="input text-sm" />
+              <input type="number" value={newCost.intervalMonths} onChange={(e) => setNewCost({ ...newCost, intervalMonths: e.target.value })} placeholder="Időszak (hónap)" className="input text-sm col-span-2" />
+              <label className="flex items-center gap-2 cursor-pointer col-span-2">
+                <input type="checkbox" checked={newCost.vatApplicable} onChange={(e) => setNewCost({ ...newCost, vatApplicable: e.target.checked })} className="rounded" />
+                <span className="text-sm text-gray-600">TVA (21%) rászámítása erre a tételre</span>
+              </label>
             </div>
             <div className="flex gap-2">
               <button onClick={addCompanyCost} className="btn-primary text-sm py-1.5">Hozzáadás</button>
@@ -175,7 +175,7 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
               <div key={c.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 text-sm">
                 <div>
                   <span className="font-medium text-gray-800">{c.name}</span>
-                  <span className="text-gray-400 ml-2">{c.amountLei} LEI {c.isGross ? "(bruttó)" : "(nettó)"} • {c.basisType === "time" ? `${c.intervalMonths} hó` : "km-alapú"}</span>
+                  <span className="text-gray-400 ml-2">{c.amountLei} LEI (nettó) {c.vatApplicable ? "+TVA" : "TVA nélkül"} • {c.basisType === "time" ? `${c.intervalMonths} hó` : "km-alapú"}</span>
                 </div>
                 <button onClick={() => deleteCompanyCost(c.id)} className="text-red-400 hover:text-red-600 ml-2">×</button>
               </div>

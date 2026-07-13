@@ -2,16 +2,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+// amountLei mindig nettó; vatApplicable = kell-e rá 21% TVA
 const DEFAULT_TRUCK_COSTS = [
-  { name: "Gumiabroncs", basisType: "km", intervalKm: 240000, intervalMonths: null, amountLei: 12600, isGross: true },
-  { name: "Szerviz (revisie)", basisType: "km", intervalKm: 80000, intervalMonths: null, amountLei: 2450, isGross: true },
-  { name: "RCA biztosítás", basisType: "time", intervalKm: null, intervalMonths: 12, amountLei: 12000, isGross: true },
-  { name: "CASCO biztosítás", basisType: "time", intervalKm: null, intervalMonths: 12, amountLei: 7200, isGross: true },
-  { name: "Fékbetét", basisType: "km", intervalKm: null, intervalMonths: 12, amountLei: 1000, isGross: true },
-  { name: "Féktárcsa", basisType: "km", intervalKm: null, intervalMonths: 24, amountLei: 2000, isGross: true },
-  { name: "Lízing", basisType: "time", intervalKm: null, intervalMonths: 1, amountLei: 4300, isGross: true },
-  { name: "Karbantartás", basisType: "km", intervalKm: null, intervalMonths: 12, amountLei: 7000, isGross: true },
-  { name: "Váratlan szerviz", basisType: "time", intervalKm: null, intervalMonths: 12, amountLei: 15000, isGross: true },
+  { name: "Gumiabroncs", basisType: "km", intervalKm: 240000, intervalMonths: null, amountLei: 12600, vatApplicable: true },
+  { name: "Szerviz (revisie)", basisType: "km", intervalKm: 80000, intervalMonths: null, amountLei: 2450, vatApplicable: true },
+  { name: "RCA biztosítás", basisType: "time", intervalKm: null, intervalMonths: 12, amountLei: 12000, vatApplicable: false },
+  { name: "CASCO biztosítás", basisType: "time", intervalKm: null, intervalMonths: 12, amountLei: 7200, vatApplicable: false },
+  { name: "Fékbetét", basisType: "km", intervalKm: null, intervalMonths: 12, amountLei: 1000, vatApplicable: true },
+  { name: "Féktárcsa", basisType: "km", intervalKm: null, intervalMonths: 24, amountLei: 2000, vatApplicable: true },
+  { name: "Lízing", basisType: "time", intervalKm: null, intervalMonths: 1, amountLei: 4300, vatApplicable: false },
+  { name: "Karbantartás", basisType: "km", intervalKm: null, intervalMonths: 12, amountLei: 7000, vatApplicable: true },
+  { name: "Váratlan szerviz", basisType: "time", intervalKm: null, intervalMonths: 12, amountLei: 15000, vatApplicable: true },
 ];
 
 interface CostItem {
@@ -20,7 +21,7 @@ interface CostItem {
   intervalKm: number | null;
   intervalMonths: number | null;
   amountLei: number;
-  isGross: boolean;
+  vatApplicable: boolean;
 }
 
 interface TruckFormProps {
@@ -47,7 +48,7 @@ export function TruckForm({ initial }: TruckFormProps) {
   const [error, setError] = useState("");
 
   function addCost() {
-    setCosts([...costs, { name: "", basisType: "time", intervalKm: null, intervalMonths: 12, amountLei: 0, isGross: true }]);
+    setCosts([...costs, { name: "", basisType: "time", intervalKm: null, intervalMonths: 12, amountLei: 0, vatApplicable: false }]);
   }
 
   function updateCost(i: number, field: keyof CostItem, value: unknown) {
@@ -123,14 +124,7 @@ export function TruckForm({ initial }: TruckFormProps) {
                 </select>
               </div>
               <div>
-                <label className="text-xs text-gray-500">Típus</label>
-                <select value={c.isGross ? "gross" : "net"} onChange={(e) => updateCost(i, "isGross", e.target.value === "gross")} className="input text-sm">
-                  <option value="gross">Bruttó</option>
-                  <option value="net">Nettó</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs text-gray-500">Összeg (LEI)</label>
+                <label className="text-xs text-gray-500">Összeg (LEI, nettó)</label>
                 <input type="number" value={c.amountLei} onChange={(e) => updateCost(i, "amountLei", parseFloat(e.target.value))} className="input text-sm" />
               </div>
               {c.basisType === "km" ? (
@@ -145,6 +139,10 @@ export function TruckForm({ initial }: TruckFormProps) {
                 </div>
               )}
             </div>
+            <label className="flex items-center gap-2 cursor-pointer pt-1">
+              <input type="checkbox" checked={c.vatApplicable} onChange={(e) => updateCost(i, "vatApplicable", e.target.checked)} className="rounded" />
+              <span className="text-xs text-gray-600">TVA (21%) rászámítása erre a tételre</span>
+            </label>
           </div>
         ))}
       </div>

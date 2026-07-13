@@ -33,14 +33,14 @@ async function main() {
   if (existing === 0) {
     await prisma.companyCostItem.createMany({
       data: [
-        // Az eredeti táblázatban minden érték nettó (isGross: false)
-        { name: "Könyvelő", amountLei: 1200, isGross: false, basisType: "time", intervalMonths: 1 },
-        { name: "Napidíj adók (ANGAJATI IMPOZITELE)", amountLei: 2070, isGross: false, basisType: "time", intervalMonths: 1 },
-        { name: "Engedély / Licenc", amountLei: 2000, isGross: false, basisType: "time", intervalMonths: 60 },
-        { name: "Irodai kellékek", amountLei: 1200, isGross: false, basisType: "time", intervalMonths: 12 },
-        { name: "Tárgyi eszköz adó", amountLei: 3050, isGross: false, basisType: "time", intervalMonths: 12 },
-        { name: "SSU-SSM (munkavédelem)", amountLei: 800, isGross: false, basisType: "time", intervalMonths: 12 },
-        { name: "Parkolás", amountLei: 300, isGross: false, basisType: "time", intervalMonths: 1 },
+        // Minden érték nettó; vatApplicable = kell-e rá 21% TVA (adók TVA-mentesek)
+        { name: "Könyvelő", amountLei: 1200, vatApplicable: true, basisType: "time", intervalMonths: 1 },
+        { name: "Napidíj adók (ANGAJATI IMPOZITELE)", amountLei: 2070, vatApplicable: false, basisType: "time", intervalMonths: 1 },
+        { name: "Engedély / Licenc", amountLei: 2000, vatApplicable: false, basisType: "time", intervalMonths: 60 },
+        { name: "Irodai kellékek", amountLei: 1200, vatApplicable: true, basisType: "time", intervalMonths: 12 },
+        { name: "Tárgyi eszköz adó", amountLei: 3050, vatApplicable: false, basisType: "time", intervalMonths: 12 },
+        { name: "SSU-SSM (munkavédelem)", amountLei: 800, vatApplicable: true, basisType: "time", intervalMonths: 12 },
+        { name: "Parkolás", amountLei: 300, vatApplicable: true, basisType: "time", intervalMonths: 1 },
       ],
     });
   }

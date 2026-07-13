@@ -5,8 +5,8 @@ export interface CostItem {
   basisType: "km" | "time";
   intervalKm?: number | null;
   intervalMonths?: number | null;
-  amountLei: number;
-  isGross: boolean;
+  amountLei: number; // mindig nettó érték
+  vatApplicable: boolean; // rászámítunk-e 21% TVA-t
 }
 
 export interface CalcInput {
@@ -17,7 +17,7 @@ export interface CalcInput {
 
   truckCosts: CostItem[];
   trailerCosts: CostItem[];
-  driverCosts: { name: string; amountLei: number; isGross: boolean }[];
+  driverCosts: { name: string; amountLei: number; vatApplicable: boolean }[];
 
   fuelMethod: "per_liter" | "fixed";
   fuelLiterPer100km?: number;
@@ -70,8 +70,9 @@ export interface CalcResult {
   profitEur?: number;
 }
 
+// Az amountLei mindig nettó; itt csak arányosítunk
 function prorateCost(item: CostItem, tripKm: number, annualKm: number, tripWeeks: number, annualWeeks: number): number {
-  const net = toNet(item.amountLei, item.isGross);
+  const net = item.amountLei;
   if (item.basisType === "km") {
     const intervalKm = item.intervalKm ?? annualKm;
     return (tripKm / intervalKm) * net;
@@ -86,33 +87,34 @@ export function calculate(input: CalcInput): CalcResult {
   const tripWeeks = input.tripDays / 7;
   const lines: CostLine[] = [];
 
-  const addLine = (name: string, netLei: number) => {
-    const vatLei = netLei * 0.21;
+  // TVA csak akkor, ha a tétel TVA-köteles; különben 0
+  const addLine = (name: string, netLei: number, vatApplicable: boolean) => {
+    const vatLei = vatApplicable ? netLei * 0.21 : 0;
     lines.push({ name, netLei, vatLei, grossLei: netLei + vatLei });
   };
 
   for (const item of input.truckCosts) {
     const net = prorateCost(item, input.tripKm, input.annualKmTarget, tripWeeks, input.workingWeeksPerYear);
-    if (net > 0) addLine(`Vontató – ${item.name}`, net);
+    if (net > 0) addLine(`Vontató – ${item.name}`, net, item.vatApplicable);
   }
 
   for (const item of input.trailerCosts) {
     const net = prorateCost(item, input.tripKm, input.annualKmTarget, tripWeeks, input.workingWeeksPerYear);
-    if (net > 0) addLine(`Pótkocsi – ${item.name}`, net);
+    if (net > 0) addLine(`Pótkocsi – ${item.name}`, net, item.vatApplicable);
   }
 
   for (const d of input.driverCosts) {
-    const net = toNet(d.amountLei, d.isGross);
+    const net = d.amountLei;
     const perWeek = net / input.workingWeeksPerYear;
-    addLine(`Sofőr – ${d.name}`, perWeek * tripWeeks);
+    addLine(`Sofőr – ${d.name}`, perWeek * tripWeeks, d.vatApplicable);
   }
 
   const companyCostPerTruck = input.companyCosts.map((item) => {
     const net = prorateCost(item, input.tripKm, input.annualKmTarget, tripWeeks, input.workingWeeksPerYear);
-    return { name: item.name, net: net / input.activeTrucksCount };
+    return { name: item.name, net: net / input.activeTrucksCount, vatApplicable: item.vatApplicable };
   });
   for (const c of companyCostPerTruck) {
-    if (c.net > 0) addLine(`Céges – ${c.name}`, c.net);
+    if (c.net > 0) addLine(`Céges – ${c.name}`, c.net, c.vatApplicable);
   }
 
   // Fuel + a felhasznált liter (a literenkénti kedvezményekhez)

@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     data: {
       name: data.name,
       amountLei: data.amountLei,
-      isGross: data.isGross ?? true,
+      vatApplicable: data.vatApplicable ?? false,
       basisType: data.basisType ?? "time",
       intervalMonths: data.intervalMonths ?? 12,
     },
@@ -37,7 +37,7 @@ export async function PUT(req: NextRequest) {
     data: {
       name: data.name,
       amountLei: data.amountLei,
-      isGross: data.isGross ?? true,
+      vatApplicable: data.vatApplicable ?? false,
       basisType: data.basisType ?? "time",
       intervalMonths: data.intervalMonths ?? 12,
     },

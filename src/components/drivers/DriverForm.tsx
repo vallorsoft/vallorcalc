@@ -2,13 +2,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+// amountLei mindig nettó; a bérek/adók általában TVA-mentesek
 const DEFAULT_DRIVER_COSTS = [
-  { name: "Fizetés (bruttó)", amountLei: 5000, isGross: true },
-  { name: "Napidíj (diurna)", amountLei: 9000, isGross: false },
-  { name: "Alkalmazott adók", amountLei: 2070, isGross: false },
+  { name: "Fizetés", amountLei: 5000, vatApplicable: false },
+  { name: "Napidíj (diurna)", amountLei: 9000, vatApplicable: false },
+  { name: "Alkalmazott adók", amountLei: 2070, vatApplicable: false },
 ];
 
-interface CostItem { name: string; amountLei: number; isGross: boolean; }
+interface CostItem { name: string; amountLei: number; vatApplicable: boolean; }
 
 interface DriverFormProps {
   initial?: {
@@ -38,7 +39,7 @@ export function DriverForm({ initial }: DriverFormProps) {
   const [error, setError] = useState("");
 
   function addCost() {
-    setCosts([...costs, { name: "", amountLei: 0, isGross: true }]);
+    setCosts([...costs, { name: "", amountLei: 0, vatApplicable: false }]);
   }
 
   function updateCost(i: number, field: keyof CostItem, value: unknown) {
@@ -103,19 +104,14 @@ export function DriverForm({ initial }: DriverFormProps) {
               </div>
               <button type="button" onClick={() => setCosts(costs.filter((_, idx) => idx !== i))} className="text-red-400 hover:text-red-600 px-2 pt-5 text-lg">×</button>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs text-gray-500">Összeg (LEI)</label>
-                <input type="number" value={c.amountLei} onChange={(e) => updateCost(i, "amountLei", parseFloat(e.target.value))} className="input text-sm" placeholder="LEI" />
-              </div>
-              <div>
-                <label className="text-xs text-gray-500">Típus</label>
-                <select value={c.isGross ? "gross" : "net"} onChange={(e) => updateCost(i, "isGross", e.target.value === "gross")} className="input text-sm">
-                  <option value="gross">Bruttó</option>
-                  <option value="net">Nettó</option>
-                </select>
-              </div>
+            <div>
+              <label className="text-xs text-gray-500">Összeg (LEI, nettó)</label>
+              <input type="number" value={c.amountLei} onChange={(e) => updateCost(i, "amountLei", parseFloat(e.target.value))} className="input text-sm" placeholder="LEI" />
             </div>
+            <label className="flex items-center gap-2 cursor-pointer pt-1">
+              <input type="checkbox" checked={c.vatApplicable} onChange={(e) => updateCost(i, "vatApplicable", e.target.checked)} className="rounded" />
+              <span className="text-xs text-gray-600">TVA (21%) rászámítása erre a tételre</span>
+            </label>
           </div>
         ))}
       </div>

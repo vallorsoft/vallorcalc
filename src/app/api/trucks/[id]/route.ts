@@ -35,7 +35,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
               intervalKm?: number;
               intervalMonths?: number;
               amountLei: number;
-              isGross: boolean;
+              vatApplicable: boolean;
               notes?: string;
             }) => ({
               name: c.name,
@@ -43,7 +43,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
               intervalKm: c.intervalKm ?? null,
               intervalMonths: c.intervalMonths ?? null,
               amountLei: c.amountLei,
-              isGross: c.isGross,
+              vatApplicable: c.vatApplicable ?? false,
               notes: c.notes ?? null,
             })),
           }

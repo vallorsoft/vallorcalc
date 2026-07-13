@@ -20,10 +20,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       notes: data.notes ?? null,
       costItems: data.costItems
         ? {
-            create: data.costItems.map((c: { name: string; amountLei: number; isGross: boolean }) => ({
+            create: data.costItems.map((c: { name: string; amountLei: number; vatApplicable: boolean }) => ({
               name: c.name,
               amountLei: c.amountLei,
-              isGross: c.isGross,
+              vatApplicable: c.vatApplicable ?? false,
             })),
           }
         : undefined,

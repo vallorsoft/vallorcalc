@@ -13,6 +13,17 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
+  // Séma-frissítés: vatApplicable oszlopok hozzáadása (ha még nincsenek)
+  const alters = [
+    `ALTER TABLE "TruckCostItem" ADD COLUMN IF NOT EXISTS "vatApplicable" BOOLEAN NOT NULL DEFAULT false`,
+    `ALTER TABLE "TrailerCostItem" ADD COLUMN IF NOT EXISTS "vatApplicable" BOOLEAN NOT NULL DEFAULT false`,
+    `ALTER TABLE "DriverCostItem" ADD COLUMN IF NOT EXISTS "vatApplicable" BOOLEAN NOT NULL DEFAULT false`,
+    `ALTER TABLE "CompanyCostItem" ADD COLUMN IF NOT EXISTS "vatApplicable" BOOLEAN NOT NULL DEFAULT false`,
+  ];
+  for (const sql of alters) {
+    await prisma.$executeRawUnsafe(sql);
+  }
+
   const email = "admin@vallor.ro";
   const password = "Admin1234!";
   const passwordHash = await bcrypt.hash(password, 10);
@@ -34,6 +45,7 @@ export async function GET(req: Request) {
     ok: true,
     email: user.email,
     role: user.role,
+    schema: "vatApplicable oszlopok rendben",
     message: "Admin felhasználó készen áll. Jelentkezz be: admin@vallor.ro / Admin1234!",
   });
 }
