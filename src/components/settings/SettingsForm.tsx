@@ -35,6 +35,8 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
   const [costs, setCosts] = useState<CompanyCost[]>(initCosts);
   const [newCost, setNewCost] = useState({ name: "", amountLei: "", vatApplicable: false, basisType: "time", intervalMonths: "12" });
   const [addingCost, setAddingCost] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editCost, setEditCost] = useState({ name: "", amountLei: "", vatApplicable: false, basisType: "time", intervalMonths: "12" });
 
   async function saveSettings(e: React.FormEvent) {
     e.preventDefault();
@@ -79,6 +81,38 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
   async function deleteCompanyCost(id: string) {
     await fetch("/api/company-costs", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
     setCosts(costs.filter((c) => c.id !== id));
+  }
+
+  function startEdit(c: CompanyCost) {
+    setEditingId(c.id);
+    setEditCost({
+      name: c.name,
+      amountLei: c.amountLei.toString(),
+      vatApplicable: c.vatApplicable,
+      basisType: c.basisType,
+      intervalMonths: (c.intervalMonths ?? 12).toString(),
+    });
+  }
+
+  async function saveEdit() {
+    if (!editingId) return;
+    const res = await fetch("/api/company-costs", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: editingId,
+        name: editCost.name,
+        amountLei: parseFloat(editCost.amountLei),
+        vatApplicable: editCost.vatApplicable,
+        basisType: editCost.basisType,
+        intervalMonths: parseInt(editCost.intervalMonths),
+      }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      setCosts(costs.map((c) => c.id === editingId ? updated : c));
+      setEditingId(null);
+    }
   }
 
   return (
@@ -172,13 +206,38 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
         ) : (
           <div className="space-y-2">
             {costs.map((c) => (
-              <div key={c.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 text-sm">
-                <div>
-                  <span className="font-medium text-gray-800">{c.name}</span>
-                  <span className="text-gray-400 ml-2">{c.amountLei} LEI (nettó) {c.vatApplicable ? "+TVA" : "TVA nélkül"} • {c.basisType === "time" ? `${c.intervalMonths} hó` : "km-alapú"}</span>
+              editingId === c.id ? (
+                <div key={c.id} className="border border-blue-200 rounded-lg p-3 bg-blue-50 space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <input value={editCost.name} onChange={(e) => setEditCost({ ...editCost, name: e.target.value })} placeholder="Megnevezés" className="input text-sm col-span-2" />
+                    <input type="number" value={editCost.amountLei} onChange={(e) => setEditCost({ ...editCost, amountLei: e.target.value })} placeholder="Összeg LEI (nettó)" className="input text-sm" />
+                    <select value={editCost.basisType} onChange={(e) => setEditCost({ ...editCost, basisType: e.target.value })} className="input text-sm">
+                      <option value="time">Idő-alapú</option>
+                      <option value="km">km-alapú</option>
+                    </select>
+                    <input type="number" value={editCost.intervalMonths} onChange={(e) => setEditCost({ ...editCost, intervalMonths: e.target.value })} placeholder="Időszak (hónap)" className="input text-sm col-span-2" />
+                    <label className="flex items-center gap-2 cursor-pointer col-span-2">
+                      <input type="checkbox" checked={editCost.vatApplicable} onChange={(e) => setEditCost({ ...editCost, vatApplicable: e.target.checked })} className="rounded" />
+                      <span className="text-sm text-gray-600">TVA (21%) rászámítása erre a tételre</span>
+                    </label>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={saveEdit} className="btn-primary text-sm py-1.5">Mentés</button>
+                    <button onClick={() => setEditingId(null)} className="btn-secondary text-sm py-1.5">Mégse</button>
+                  </div>
                 </div>
-                <button onClick={() => deleteCompanyCost(c.id)} className="text-red-400 hover:text-red-600 ml-2">×</button>
-              </div>
+              ) : (
+                <div key={c.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 text-sm gap-2">
+                  <div className="min-w-0">
+                    <span className="font-medium text-gray-800">{c.name}</span>
+                    <span className="text-gray-400 ml-2">{c.amountLei} LEI (nettó) {c.vatApplicable ? "+TVA" : "TVA nélkül"} • {c.basisType === "time" ? `${c.intervalMonths} hó` : "km-alapú"}</span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button onClick={() => startEdit(c)} title="Szerkesztés" className="text-gray-400 hover:text-blue-600">✏️</button>
+                    <button onClick={() => deleteCompanyCost(c.id)} title="Törlés" className="text-red-400 hover:text-red-600 text-lg">×</button>
+                  </div>
+                </div>
+              )
             ))}
           </div>
         )}
