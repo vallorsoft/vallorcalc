@@ -4,15 +4,38 @@ import { CalcResult } from "@/lib/calc-engine";
 interface Props {
   result: CalcResult;
   bnrRate: number;
+  printTitle?: string;
+  printMeta?: string;
 }
 
 function fmt(n: number) { return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, " "); }
 
-export function ResultPanel({ result, bnrRate }: Props) {
+export function ResultPanel({ result, bnrRate, printTitle, printMeta }: Props) {
   const hasProfit = result.profitNet != null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 print-area">
+      {/* PDF letöltés gomb */}
+      <div className="flex justify-end no-print">
+        <button
+          onClick={() => window.print()}
+          className="text-sm bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-lg px-4 py-2 transition flex items-center gap-2"
+        >
+          📄 PDF letöltés
+        </button>
+      </div>
+
+      {/* Nyomtatási fejléc (csak PDF-ben) */}
+      <div className="print-only mb-4">
+        <div style={{ fontSize: "20px", fontWeight: "bold", color: "#1e3a8a" }}>VállorCalc – Fuvarköltség kalkuláció</div>
+        {printTitle && <div style={{ fontSize: "14px", marginTop: "4px" }}>{printTitle}</div>}
+        {printMeta && <div style={{ fontSize: "12px", color: "#666" }}>{printMeta}</div>}
+        <div style={{ fontSize: "11px", color: "#999", marginTop: "2px" }}>
+          Készült: {new Date().toLocaleString("hu-HU")} • 1 EUR = {bnrRate.toFixed(4)} LEI
+        </div>
+        <hr style={{ margin: "8px 0", borderColor: "#e5e7eb" }} />
+      </div>
+
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-blue-700 text-white rounded-xl p-4">
@@ -94,6 +117,32 @@ export function ResultPanel({ result, bnrRate }: Props) {
             <div className="px-4 py-2.5 flex items-center justify-between text-sm">
               <span className="text-gray-600">Útdíjak</span>
               <span className="font-medium text-gray-800">{fmt(result.tollNet)} LEI</span>
+            </div>
+          )}
+
+          {/* Kategóriánkénti összesítés a végösszeg előtt */}
+          {result.categoryTotals && (
+            <div className="bg-gray-50 border-t border-gray-100">
+              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Összesítés kategóriánként (nettó)</div>
+              {[
+                { label: "🚛 Vontató", val: result.categoryTotals.truck.net },
+                { label: "🚌 Pótkocsi", val: result.categoryTotals.trailer.net },
+                { label: "👤 Sofőr", val: result.categoryTotals.driver.net },
+                { label: "🏢 Céges", val: result.categoryTotals.company.net },
+                { label: "⛽ Üzemanyag", val: result.fuelNet },
+                { label: "🛣️ Útdíj", val: result.tollNet },
+              ].filter((r) => r.val > 0).map((r, i) => (
+                <div key={i} className="px-4 py-2 flex items-center justify-between text-sm">
+                  <span className="text-gray-600">{r.label}</span>
+                  <span className="font-medium text-gray-800">{fmt(r.val)} LEI</span>
+                </div>
+              ))}
+              {result.discountNet > 0 && (
+                <div className="px-4 py-2 flex items-center justify-between text-sm">
+                  <span className="text-green-700">➖ Kedvezmény</span>
+                  <span className="font-medium text-green-700">− {fmt(result.discountNet)} LEI</span>
+                </div>
+              )}
             </div>
           )}
 

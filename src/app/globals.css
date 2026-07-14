@@ -22,3 +22,31 @@ body {
     @apply bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-lg px-5 py-2 text-sm transition;
   }
 }
+
+/* Nyomtatás / PDF export: csak a riport látszik */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 0;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}
+
+.print-only {
+  display: none;
+}

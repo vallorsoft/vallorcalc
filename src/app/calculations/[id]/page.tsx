@@ -47,7 +47,14 @@ export default async function CalcDetailPage({ params }: { params: Promise<{ id:
         </div>
       </div>
 
-      {result && <ResultPanel result={result} bnrRate={calc.bnrEurLei} />}
+      {result && (
+        <ResultPanel
+          result={result}
+          bnrRate={calc.bnrEurLei}
+          printTitle={calc.name || `${calc.truck.name} + ${calc.trailer.name}`}
+          printMeta={`${calc.tripKm} km • ${calc.tripDays / 7} hét`}
+        />
+      )}
 
       <div className="flex gap-3">
         <Link href="/calculations" className="btn-secondary">Vissza a listához</Link>

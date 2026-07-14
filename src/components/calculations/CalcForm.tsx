@@ -310,7 +310,12 @@ export function CalcForm({ trucks, trailers, drivers, pairings, settings, totalT
       {/* Result */}
       {result && (
         <div className="space-y-4">
-          <ResultPanel result={result} bnrRate={bnrRate} />
+          <ResultPanel
+            result={result}
+            bnrRate={bnrRate}
+            printTitle={`${trucks.find((t) => t.id === truckId)?.name ?? ""}${trailerId ? " + " + (trailers.find((t) => t.id === trailerId)?.name ?? "") : ""}`}
+            printMeta={`${tripWeeks} hét • ${tripKm} km`}
+          />
           <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
             <h3 className="font-semibold text-gray-800">Mentés</h3>
             <input value={calcName} onChange={(e) => setCalcName(e.target.value)} placeholder="Számítás neve (opcionális)" className="input" />
