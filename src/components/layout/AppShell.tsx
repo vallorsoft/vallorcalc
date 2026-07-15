@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
+import { PwaInstallButton } from "./PwaInstallButton";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: "🏠" },
@@ -62,6 +63,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {item.label}
             </Link>
           ))}
+          <div className="mt-auto pt-2 pb-4 px-1">
+            <PwaInstallButton />
+          </div>
         </nav>
 
         {/* Mobile drawer */}
@@ -84,6 +88,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   {item.label}
                 </Link>
               ))}
+              <div className="mt-2 px-1">
+                <PwaInstallButton onDone={() => setMobileOpen(false)} />
+              </div>
             </div>
             <div className="flex-1 bg-black/30" onClick={() => setMobileOpen(false)} />
           </div>
