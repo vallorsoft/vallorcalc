@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { calculate, CalcInput } from "@/lib/calc-engine";
-import { toNet } from "@/lib/vat";
+import { generateSerialNo, computeFreightRevenue } from "@/lib/serial";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -35,6 +35,19 @@ export async function POST(req: NextRequest) {
   ]);
 
   if (!truck || !trailer) return NextResponse.json({ error: "Vehicle not found" }, { status: 400 });
+
+  // Bevétel: nettó/bruttó összeg, LEI vagy EUR pénznemben.
+  const freightIsGross = data.freightRevenueIsGross ?? true;
+  const freightAmount =
+    data.freightRevenueAmount != null && data.freightRevenueAmount !== ""
+      ? Number(data.freightRevenueAmount)
+      : null;
+  const { grossLei: freightGrossLei, grossEur: freightGrossEur } = computeFreightRevenue(
+    freightAmount,
+    data.freightRevenueCurrency,
+    freightIsGross,
+    data.bnrEurLei
+  );
 
   const driverCosts = drivers.flatMap((d) =>
     d.costItems.map((ci) => ({ name: `${d.name} – ${ci.name}`, amountLei: ci.amountLei, isGross: ci.isGross }))
@@ -87,11 +100,13 @@ export async function POST(req: NextRequest) {
       amountLei: c.amountLei,
       isGross: c.isGross,
     })),
-    freightRevenueLei: data.freightRevenueLei ?? null,
+    freightRevenueLei: freightGrossLei,
     bnrEurLei: data.bnrEurLei,
   };
 
   const result = calculate(input);
+
+  const serialNo = data.save ? await generateSerialNo() : null;
 
   const calc = await prisma.calculation.create({
     data: {
@@ -118,8 +133,12 @@ export async function POST(req: NextRequest) {
         })),
       },
       activeTrucksCount: data.activeTrucksCount ?? 1,
-      freightRevenueLei: data.freightRevenueLei ?? null,
-      freightRevenueEur: data.freightRevenueLei ? data.freightRevenueLei / data.bnrEurLei : null,
+      freightRevenueLei: freightGrossLei,
+      freightRevenueEur: freightGrossEur,
+      freightRevenueInput: freightAmount,
+      freightRevenueCurrency: freightAmount != null ? (data.freightRevenueCurrency ?? "lei") : null,
+      freightRevenueIsGross: freightIsGross,
+      serialNo,
       bnrEurLei: data.bnrEurLei,
       resultJson: JSON.parse(JSON.stringify(result)),
       savedAt: data.save ? new Date() : null,
