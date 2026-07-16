@@ -37,6 +37,8 @@ export function CalcForm({ trucks, trailers, drivers, pairings, settings, totalT
   const [tolls, setTolls] = useState<Toll[]>([]);
   const [activeTrucksCount, setActiveTrucksCount] = useState(1);
   const [freightRevenue, setFreightRevenue] = useState("");
+  const [freightCurrency, setFreightCurrency] = useState<"lei" | "eur">("lei");
+  const [freightIsGross, setFreightIsGross] = useState(true);
   const [calcName, setCalcName] = useState("");
   const [result, setResult] = useState<CalcResult | null>(null);
   const [calcId, setCalcId] = useState<string | null>(null);
@@ -87,7 +89,9 @@ export function CalcForm({ trucks, trailers, drivers, pairings, settings, totalT
         amountEur: t.currency === "eur" ? parseFloat(t.amount) : parseFloat(t.amount) / bnrRate,
       })),
       activeTrucksCount,
-      freightRevenueLei: freightRevenue ? parseFloat(freightRevenue) : undefined,
+      freightRevenueAmount: freightRevenue ? parseFloat(freightRevenue) : undefined,
+      freightRevenueCurrency: freightCurrency,
+      freightRevenueIsGross: freightIsGross,
       bnrEurLei: bnrRate,
       name: calcName || undefined,
       save,
@@ -288,9 +292,26 @@ export function CalcForm({ trucks, trailers, drivers, pairings, settings, totalT
       </div>
 
       {/* Optional revenue */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <label className="label">Fuvar díj (bruttó LEI) – opcionális</label>
-        <input type="number" value={freightRevenue} onChange={(e) => setFreightRevenue(e.target.value)} className="input mt-1" placeholder="Ha megadod, profit/veszteség is megjelenik" />
+      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+        <label className="label">Bevétel / Fuvar díj – opcionális</label>
+        <div className="flex gap-2">
+          <input type="number" value={freightRevenue} onChange={(e) => setFreightRevenue(e.target.value)} className="input flex-1" placeholder="Ha megadod, profit/veszteség is megjelenik" />
+          <select value={freightCurrency} onChange={(e) => setFreightCurrency(e.target.value as "lei" | "eur")} className="input w-24">
+            <option value="lei">LEI</option>
+            <option value="eur">EUR</option>
+          </select>
+        </div>
+        <div className="flex gap-2">
+          <button type="button" onClick={() => setFreightIsGross(true)} className={`flex-1 py-1.5 rounded-lg text-sm font-medium border transition ${freightIsGross ? "bg-blue-700 text-white border-blue-700" : "bg-white border-gray-300 text-gray-600"}`}>
+            Bruttó összeg
+          </button>
+          <button type="button" onClick={() => setFreightIsGross(false)} className={`flex-1 py-1.5 rounded-lg text-sm font-medium border transition ${!freightIsGross ? "bg-blue-700 text-white border-blue-700" : "bg-white border-gray-300 text-gray-600"}`}>
+            Nettó összeg
+          </button>
+        </div>
+        <p className="text-xs text-gray-400">
+          Add meg, hogy a beírt összeg nettó vagy bruttó, és milyen pénznemben (LEI = RON vagy EUR). Ez alapján számoljuk a profitot.
+        </p>
       </div>
 
       {error && <p className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{error}</p>}
