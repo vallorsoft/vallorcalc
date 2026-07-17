@@ -14,6 +14,7 @@ interface Props {
   initial: {
     annualKmTarget: number;
     workingWeeksPerYear: number;
+    weeksPerMonth?: number | null;
     excisaDiscountLei?: number | null;
     excisaDiscountType?: string | null;
     fuelDiscountLei?: number | null;
@@ -25,6 +26,7 @@ interface Props {
 export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
   const [annualKm, setAnnualKm] = useState(initial.annualKmTarget.toString());
   const [weeks, setWeeks] = useState(initial.workingWeeksPerYear.toString());
+  const [weeksPerMonth, setWeeksPerMonth] = useState((initial.weeksPerMonth ?? 4).toString());
   const [excisaLei, setExcisaLei] = useState(initial.excisaDiscountLei?.toString() ?? "");
   const [excisaType, setExcisaType] = useState(initial.excisaDiscountType ?? "gross");
   const [fuelDiscLei, setFuelDiscLei] = useState(initial.fuelDiscountLei?.toString() ?? "");
@@ -33,10 +35,10 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
   const [saved, setSaved] = useState(false);
 
   const [costs, setCosts] = useState<CompanyCost[]>(initCosts);
-  const [newCost, setNewCost] = useState({ name: "", amountLei: "", vatApplicable: false, basisType: "time", intervalMonths: "12" });
+  const [newCost, setNewCost] = useState({ name: "", amountLei: "", vatApplicable: false, basisType: "time", intervalCount: "1", intervalUnit: "year" });
   const [addingCost, setAddingCost] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editCost, setEditCost] = useState({ name: "", amountLei: "", vatApplicable: false, basisType: "time", intervalMonths: "12" });
+  const [editCost, setEditCost] = useState({ name: "", amountLei: "", vatApplicable: false, basisType: "time", intervalCount: "1", intervalUnit: "year" });
 
   async function saveSettings(e: React.FormEvent) {
     e.preventDefault();
@@ -47,6 +49,7 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
       body: JSON.stringify({
         annualKmTarget: parseFloat(annualKm),
         workingWeeksPerYear: parseInt(weeks),
+        weeksPerMonth: parseFloat(weeksPerMonth) || 4,
         excisaDiscountLei: excisaLei ? parseFloat(excisaLei) : null,
         excisaDiscountType: excisaLei ? excisaType : null,
         fuelDiscountLei: fuelDiscLei ? parseFloat(fuelDiscLei) : null,
@@ -67,13 +70,13 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
         amountLei: parseFloat(newCost.amountLei),
         vatApplicable: newCost.vatApplicable,
         basisType: newCost.basisType,
-        intervalMonths: parseInt(newCost.intervalMonths),
+        intervalMonths: (parseInt(newCost.intervalCount) || 0) * (newCost.intervalUnit === "year" ? 12 : 1),
       }),
     });
     if (res.ok) {
       const item = await res.json();
       setCosts([...costs, item]);
-      setNewCost({ name: "", amountLei: "", vatApplicable: false, basisType: "time", intervalMonths: "12" });
+      setNewCost({ name: "", amountLei: "", vatApplicable: false, basisType: "time", intervalCount: "1", intervalUnit: "year" });
       setAddingCost(false);
     }
   }
@@ -85,12 +88,15 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
 
   function startEdit(c: CompanyCost) {
     setEditingId(c.id);
+    const m = c.intervalMonths ?? 12;
+    const asYear = m >= 12 && m % 12 === 0;
     setEditCost({
       name: c.name,
       amountLei: c.amountLei.toString(),
       vatApplicable: c.vatApplicable,
       basisType: c.basisType,
-      intervalMonths: (c.intervalMonths ?? 12).toString(),
+      intervalCount: (asYear ? m / 12 : m).toString(),
+      intervalUnit: asYear ? "year" : "month",
     });
   }
 
@@ -105,7 +111,7 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
         amountLei: parseFloat(editCost.amountLei),
         vatApplicable: editCost.vatApplicable,
         basisType: editCost.basisType,
-        intervalMonths: parseInt(editCost.intervalMonths),
+        intervalMonths: (parseInt(editCost.intervalCount) || 0) * (editCost.intervalUnit === "year" ? 12 : 1),
       }),
     });
     if (res.ok) {
@@ -119,7 +125,7 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
     <div className="max-w-2xl mx-auto space-y-6">
       <form onSubmit={saveSettings} className="bg-white rounded-xl border border-gray-200 p-5 space-y-5">
         <h2 className="font-semibold text-gray-800">Rendszer paraméterek</h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div>
             <label className="label">Éves km cél</label>
             <input type="number" value={annualKm} onChange={(e) => setAnnualKm(e.target.value)} className="input" />
@@ -127,6 +133,11 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
           <div>
             <label className="label">Munkahetek / év</label>
             <input type="number" value={weeks} onChange={(e) => setWeeks(e.target.value)} className="input" />
+          </div>
+          <div>
+            <label className="label">Hét / hónap</label>
+            <input type="number" step="0.01" value={weeksPerMonth} onChange={(e) => setWeeksPerMonth(e.target.value)} className="input" />
+            <p className="text-xs text-gray-400 mt-1">Ennyi héttel számoljuk a hónapot (havi/éves fix tételek).</p>
           </div>
         </div>
 
@@ -188,7 +199,15 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
                 <option value="time">Idő-alapú</option>
                 <option value="km">km-alapú</option>
               </select>
-              <input type="number" value={newCost.intervalMonths} onChange={(e) => setNewCost({ ...newCost, intervalMonths: e.target.value })} placeholder="Időszak (hónap)" className="input text-sm col-span-2" />
+              {newCost.basisType === "time" && (
+                <div className="flex gap-1 col-span-2">
+                  <input type="number" value={newCost.intervalCount} onChange={(e) => setNewCost({ ...newCost, intervalCount: e.target.value })} placeholder="Időszak" className="input text-sm flex-1" />
+                  <select value={newCost.intervalUnit} onChange={(e) => setNewCost({ ...newCost, intervalUnit: e.target.value })} className="input text-sm w-24">
+                    <option value="month">Havonta</option>
+                    <option value="year">Évente</option>
+                  </select>
+                </div>
+              )}
               <label className="flex items-center gap-2 cursor-pointer col-span-2">
                 <input type="checkbox" checked={newCost.vatApplicable} onChange={(e) => setNewCost({ ...newCost, vatApplicable: e.target.checked })} className="rounded" />
                 <span className="text-sm text-gray-600">TVA (21%) rászámítása erre a tételre</span>
@@ -215,7 +234,15 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
                       <option value="time">Idő-alapú</option>
                       <option value="km">km-alapú</option>
                     </select>
-                    <input type="number" value={editCost.intervalMonths} onChange={(e) => setEditCost({ ...editCost, intervalMonths: e.target.value })} placeholder="Időszak (hónap)" className="input text-sm col-span-2" />
+                    {editCost.basisType === "time" && (
+                      <div className="flex gap-1 col-span-2">
+                        <input type="number" value={editCost.intervalCount} onChange={(e) => setEditCost({ ...editCost, intervalCount: e.target.value })} placeholder="Időszak" className="input text-sm flex-1" />
+                        <select value={editCost.intervalUnit} onChange={(e) => setEditCost({ ...editCost, intervalUnit: e.target.value })} className="input text-sm w-24">
+                          <option value="month">Havonta</option>
+                          <option value="year">Évente</option>
+                        </select>
+                      </div>
+                    )}
                     <label className="flex items-center gap-2 cursor-pointer col-span-2">
                       <input type="checkbox" checked={editCost.vatApplicable} onChange={(e) => setEditCost({ ...editCost, vatApplicable: e.target.checked })} className="rounded" />
                       <span className="text-sm text-gray-600">TVA (21%) rászámítása erre a tételre</span>
@@ -230,7 +257,7 @@ export function SettingsForm({ initial, companyCosts: initCosts }: Props) {
                 <div key={c.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 text-sm gap-2">
                   <div className="min-w-0">
                     <span className="font-medium text-gray-800">{c.name}</span>
-                    <span className="text-gray-400 ml-2">{c.amountLei} LEI (nettó) {c.vatApplicable ? "+TVA" : "TVA nélkül"} • {c.basisType === "time" ? `${c.intervalMonths} hó` : "km-alapú"}</span>
+                    <span className="text-gray-400 ml-2">{c.amountLei} LEI (nettó) {c.vatApplicable ? "+TVA" : "TVA nélkül"} • {c.basisType === "time" ? (c.intervalMonths != null && c.intervalMonths % 12 === 0 ? `${c.intervalMonths / 12} év` : `${c.intervalMonths} hó`) : "km-alapú"}</span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <button onClick={() => startEdit(c)} title="Szerkesztés" className="text-gray-400 hover:text-blue-600">✏️</button>

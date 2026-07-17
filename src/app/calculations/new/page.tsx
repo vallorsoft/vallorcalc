@@ -6,7 +6,7 @@ export default async function NewCalcPage() {
   const [trucks, trailers, drivers, pairings, settings] = await Promise.all([
     prisma.truck.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
     prisma.trailer.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
-    prisma.driver.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
+    prisma.driver.findMany({ where: { active: true }, include: { costItems: true }, orderBy: { name: "asc" } }),
     prisma.vehiclePairing.findMany({
       include: { truck: true, trailer: true, drivers: { include: { driver: true } } },
       orderBy: { name: "asc" },
