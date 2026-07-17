@@ -76,6 +76,7 @@ export interface CalcResult {
   totalVat: number;
   totalGross: number;
   totalNetEur: number;
+  totalGrossEur: number;
   freightNet?: number;
   profitNet?: number;
   profitEur?: number;
@@ -179,6 +180,7 @@ export function calculate(input: CalcInput): CalcResult {
   const totalVat = vehicleVat + fuelVat;
   const totalGross = totalNet + totalVat;
   const totalNetEur = totalNet / input.bnrEurLei;
+  const totalGrossEur = totalGross / input.bnrEurLei;
 
   let freightNet: number | undefined;
   let profitNet: number | undefined;
@@ -204,6 +206,7 @@ export function calculate(input: CalcInput): CalcResult {
     totalVat,
     totalGross,
     totalNetEur,
+    totalGrossEur,
     freightNet,
     profitNet,
     profitEur,

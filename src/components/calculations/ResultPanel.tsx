@@ -48,6 +48,11 @@ export function ResultPanel({ result, bnrRate, printTitle, printMeta }: Props) {
           <div className="text-2xl font-bold text-gray-800">{fmt(result.totalVat)} LEI</div>
           <div className="text-sm text-gray-400 mt-0.5">{fmt(result.totalVat / bnrRate)} EUR</div>
         </div>
+        <div className="bg-gray-800 text-white rounded-xl p-4 col-span-2">
+          <div className="text-xs text-gray-300 mb-1">Bruttó kiadás (ÁFA-val)</div>
+          <div className="text-2xl font-bold">{fmt(result.totalGross)} LEI</div>
+          <div className="text-sm text-gray-300 mt-0.5">{fmt(result.totalGrossEur ?? result.totalGross / bnrRate)} EUR</div>
+        </div>
         {hasProfit && (
           <>
             <div className={`border rounded-xl p-4 ${result.profitNet! >= 0 ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"}`}>
@@ -151,6 +156,14 @@ export function ResultPanel({ result, bnrRate, printTitle, printMeta }: Props) {
             <div className="text-right">
               <div className="font-bold text-blue-900">{fmt(result.totalNet)} LEI</div>
               <div className="text-sm text-blue-600">{fmt(result.totalNetEur)} EUR</div>
+            </div>
+          </div>
+
+          <div className="px-4 py-3 flex items-center justify-between bg-gray-100">
+            <span className="font-bold text-gray-900">ÖSSZESEN (bruttó)</span>
+            <div className="text-right">
+              <div className="font-bold text-gray-900">{fmt(result.totalGross)} LEI</div>
+              <div className="text-sm text-gray-600">{fmt(result.totalGrossEur ?? result.totalGross / bnrRate)} EUR</div>
             </div>
           </div>
         </div>
