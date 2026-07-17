@@ -1,0 +1,21 @@
+name: Deploy to Fly.io
+
+# Auto-deploy: a default branchre push (pl. PR merge) vagy kézi indítás
+# (Actions fül -> Run workflow) esetén deployol a Fly.io-ra.
+on:
+  push:
+    branches:
+      - claude/truck-cost-calculator-mmwi4z
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy app
+    runs-on: ubuntu-latest
+    concurrency: deploy-group # egyszerre csak egy deploy fusson
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
