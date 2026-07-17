@@ -6,7 +6,7 @@ import { ResultPanel } from "./ResultPanel";
 
 interface Truck { id: string; name: string; licensePlate: string; }
 interface Trailer { id: string; name: string; licensePlate: string; }
-interface Driver { id: string; name: string; }
+interface Driver { id: string; name: string; costItems?: { basisType: string }[]; }
 interface Pairing { id: string; name: string; truckId: string; trailerId: string; drivers: { driver: Driver }[]; }
 interface Toll { description: string; amount: string; currency: "lei" | "eur"; }
 
@@ -26,6 +26,7 @@ export function CalcForm({ trucks, trailers, drivers, pairings, settings, totalT
   const [trailerId, setTrailerId] = useState("");
   const [driverIds, setDriverIds] = useState<string[]>([]);
   const [tripWeeks, setTripWeeks] = useState(1);
+  const [perDiemDays, setPerDiemDays] = useState("");
   const [tripKm, setTripKm] = useState("");
   const [fuelMethod, setFuelMethod] = useState<"per_liter" | "fixed">("per_liter");
   const [fuelLiterPer100km, setFuelLiterPer100km] = useState("30");
@@ -77,6 +78,7 @@ export function CalcForm({ trucks, trailers, drivers, pairings, settings, totalT
     const payload = {
       truckId, trailerId, driverIds,
       tripWeeks, tripDays: tripWeeks * 7, tripKm: parseFloat(tripKm),
+      perDiemDays: perDiemDays !== "" ? parseInt(perDiemDays) : Math.round(tripWeeks * 7),
       fuelMethod,
       fuelLiterPer100km: fuelMethod === "per_liter" ? parseFloat(fuelLiterPer100km) : undefined,
       fuelPricePerLiterGross: fuelMethod === "per_liter" ? parseFloat(fuelPricePerLiterGross) : undefined,
@@ -212,6 +214,22 @@ export function CalcForm({ trucks, trailers, drivers, pairings, settings, totalT
             <input type="number" value={tripKm} onChange={(e) => setTripKm(e.target.value)} className="input" placeholder="2800" />
           </div>
         </div>
+        {drivers.some((d) => driverIds.includes(d.id) && d.costItems?.some((ci) => ci.basisType === "per_day")) && (
+          <div>
+            <label className="label">Napidíj napok száma</label>
+            <input
+              type="number"
+              value={perDiemDays}
+              onChange={(e) => setPerDiemDays(e.target.value)}
+              className="input"
+              min={0}
+              placeholder={String(Math.round(tripWeeks * 7))}
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              A sofőr napidíj tételeit ennyi nappal szorozzuk. Ha üresen hagyod, a fuvar napjaival ({Math.round(tripWeeks * 7)}) számol.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Fuel */}

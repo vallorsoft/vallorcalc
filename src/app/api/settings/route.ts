@@ -25,6 +25,7 @@ export async function PUT(req: NextRequest) {
       id: "singleton",
       annualKmTarget: data.annualKmTarget,
       workingWeeksPerYear: data.workingWeeksPerYear,
+      weeksPerMonth: data.weeksPerMonth ?? 4,
       excisaDiscountLei: data.excisaDiscountLei ?? null,
       excisaDiscountType: data.excisaDiscountType ?? null,
       fuelDiscountLei: data.fuelDiscountLei ?? null,
@@ -33,6 +34,7 @@ export async function PUT(req: NextRequest) {
     update: {
       annualKmTarget: data.annualKmTarget,
       workingWeeksPerYear: data.workingWeeksPerYear,
+      weeksPerMonth: data.weeksPerMonth ?? 4,
       excisaDiscountLei: data.excisaDiscountLei ?? null,
       excisaDiscountType: data.excisaDiscountType ?? null,
       fuelDiscountLei: data.fuelDiscountLei ?? null,

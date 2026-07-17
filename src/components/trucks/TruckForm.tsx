@@ -22,6 +22,12 @@ interface CostItem {
   intervalMonths: number | null;
   amountLei: number;
   vatApplicable: boolean;
+  intervalUnit?: "month" | "year";
+}
+
+// Idő-alapú tétel megjelenítési egysége: 12 hónap = 1 év (arányosításban azonos).
+function deriveUnit(m: number | null | undefined): "month" | "year" {
+  return m != null && m >= 12 && m % 12 === 0 ? "year" : "month";
 }
 
 interface TruckFormProps {
@@ -42,7 +48,7 @@ export function TruckForm({ initial }: TruckFormProps) {
   const [year, setYear] = useState(initial?.year?.toString() ?? "");
   const [notes, setNotes] = useState(initial?.notes ?? "");
   const [costs, setCosts] = useState<CostItem[]>(
-    initial?.costItems ?? DEFAULT_TRUCK_COSTS
+    (initial?.costItems ?? DEFAULT_TRUCK_COSTS).map((c) => ({ ...c, intervalUnit: deriveUnit(c.intervalMonths) }))
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -134,8 +140,32 @@ export function TruckForm({ initial }: TruckFormProps) {
                 </div>
               ) : (
                 <div>
-                  <label className="text-xs text-gray-500">Időszak (hónap)</label>
-                  <input type="number" value={c.intervalMonths ?? ""} onChange={(e) => updateCost(i, "intervalMonths", e.target.value ? parseInt(e.target.value) : null)} className="input text-sm" placeholder="pl. 12" />
+                  <label className="text-xs text-gray-500">Időszak (havi / éves)</label>
+                  <div className="flex gap-1">
+                    <input
+                      type="number"
+                      value={c.intervalUnit === "year" ? (c.intervalMonths != null ? c.intervalMonths / 12 : "") : (c.intervalMonths ?? "")}
+                      onChange={(e) => {
+                        const n = e.target.value ? parseFloat(e.target.value) : null;
+                        updateCost(i, "intervalMonths", n == null ? null : Math.round((c.intervalUnit === "year" ? 12 : 1) * n));
+                      }}
+                      className="input text-sm"
+                      placeholder={c.intervalUnit === "year" ? "pl. 1" : "pl. 12"}
+                    />
+                    <select
+                      value={c.intervalUnit ?? "month"}
+                      onChange={(e) => {
+                        const u = e.target.value as "month" | "year";
+                        const shown = c.intervalUnit === "year" ? (c.intervalMonths != null ? c.intervalMonths / 12 : null) : c.intervalMonths;
+                        const months = shown == null ? null : Math.round((u === "year" ? 12 : 1) * shown);
+                        setCosts(costs.map((cc, idx) => idx === i ? { ...cc, intervalUnit: u, intervalMonths: months } : cc));
+                      }}
+                      className="input text-sm w-20"
+                    >
+                      <option value="month">Hónap</option>
+                      <option value="year">Év</option>
+                    </select>
+                  </div>
                 </div>
               )}
             </div>

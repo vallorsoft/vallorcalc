@@ -28,6 +28,7 @@ model SystemSettings {
   id                  String   @id @default("singleton")
   annualKmTarget      Float    @default(120000)
   workingWeeksPerYear Int      @default(48)
+  weeksPerMonth       Float    @default(4)
   vatRate             Float    @default(0.21)
   excisaDiscountLei   Float?
   excisaDiscountType  String? // "gross" | "net"
@@ -114,9 +115,11 @@ model DriverCostItem {
   driverId  String
   driver    Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
   name      String
-  amountLei Float // mindig nettó érték
+  amountLei Float // mindig nettó érték (a `currency` pénznemben)
   isGross   Boolean  @default(false)
   vatApplicable Boolean @default(false) // rászámítunk-e 21% TVA-t
+  basisType String   @default("monthly") // "monthly" | "yearly" | "per_day" | "per_km"
+  currency  String   @default("lei") // "lei" | "eur"
   createdAt DateTime @default(now())
 }
 
@@ -163,9 +166,10 @@ model Calculation {
   trailer   Trailer @relation(fields: [trailerId], references: [id])
   drivers   CalculationDriver[]
 
-  startDate DateTime
-  tripDays  Int
-  tripKm    Float
+  startDate   DateTime
+  tripDays    Int
+  perDiemDays Int?
+  tripKm      Float
 
   fuelMethod             String // "per_liter" | "fixed"
   fuelLiterPer100km      Float?

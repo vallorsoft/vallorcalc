@@ -28,10 +28,12 @@ export async function POST(req: NextRequest) {
       notes: data.notes ?? null,
       costItems: data.costItems
         ? {
-            create: data.costItems.map((c: { name: string; amountLei: number; vatApplicable: boolean }) => ({
+            create: data.costItems.map((c: { name: string; amountLei: number; vatApplicable: boolean; basisType?: string; currency?: string }) => ({
               name: c.name,
               amountLei: c.amountLei,
               vatApplicable: c.vatApplicable ?? false,
+              basisType: c.basisType ?? "monthly",
+              currency: c.currency ?? "lei",
             })),
           }
         : undefined,

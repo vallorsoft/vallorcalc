@@ -50,14 +50,22 @@ export async function POST(req: NextRequest) {
   );
 
   const driverCosts = drivers.flatMap((d) =>
-    d.costItems.map((ci) => ({ name: `${d.name} – ${ci.name}`, amountLei: ci.amountLei, vatApplicable: ci.vatApplicable }))
+    d.costItems.map((ci) => ({
+      name: `${d.name} – ${ci.name}`,
+      amountLei: ci.amountLei,
+      vatApplicable: ci.vatApplicable,
+      basisType: (ci.basisType as "monthly" | "yearly" | "per_day" | "per_km") ?? "monthly",
+      currency: (ci.currency as "lei" | "eur") ?? "lei",
+    }))
   );
 
   const input: CalcInput = {
     tripKm: data.tripKm,
     tripDays: data.tripDays,
+    perDiemDays: data.perDiemDays ?? null,
     annualKmTarget: settings.annualKmTarget,
     workingWeeksPerYear: settings.workingWeeksPerYear,
+    weeksPerMonth: settings.weeksPerMonth ?? 4,
     truckCosts: truck.costItems.map((c) => ({
       name: c.name,
       basisType: c.basisType as "km" | "time",
@@ -118,6 +126,7 @@ export async function POST(req: NextRequest) {
       drivers: { create: (data.driverIds ?? []).map((did: string) => ({ driverId: did })) },
       startDate: data.startDate ? new Date(data.startDate) : new Date(),
       tripDays: data.tripDays,
+      perDiemDays: data.perDiemDays ?? null,
       tripKm: data.tripKm,
       fuelMethod: data.fuelMethod,
       fuelLiterPer100km: data.fuelLiterPer100km ?? null,
