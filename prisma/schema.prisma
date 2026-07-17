@@ -179,8 +179,13 @@ model Calculation {
 
   activeTrucksCount Int @default(1)
 
-  freightRevenueLei Float?
-  freightRevenueEur Float?
+  freightRevenueLei      Float?
+  freightRevenueEur      Float?
+  freightRevenueInput    Float?
+  freightRevenueCurrency String? // "lei" | "eur"
+  freightRevenueIsGross  Boolean @default(true)
+
+  serialNo String? @unique
 
   bnrEurLei  Float
   resultJson Json?

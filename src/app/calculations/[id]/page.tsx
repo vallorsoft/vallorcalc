@@ -24,6 +24,9 @@ export default async function CalcDetailPage({ params }: { params: Promise<{ id:
     <div className="max-w-2xl mx-auto space-y-5">
       <div className="flex items-center justify-between">
         <div>
+          {calc.serialNo && (
+            <div className="text-xs font-mono font-semibold text-blue-700 mb-1">Sorszám: #{calc.serialNo}</div>
+          )}
           <h1 className="text-2xl font-bold text-gray-900">{calc.name || `${calc.truck.name} + ${calc.trailer.name}`}</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             {calc.tripKm} km • {calc.tripDays / 7} hét
@@ -44,6 +47,14 @@ export default async function CalcDetailPage({ params }: { params: Promise<{ id:
           )}
           <div><span className="text-gray-500">BNR árfolyam:</span> <span className="font-medium">{calc.bnrEurLei.toFixed(4)} LEI/EUR</span></div>
           <div><span className="text-gray-500">Aktív vontatók:</span> <span className="font-medium">{calc.activeTrucksCount}</span></div>
+          {calc.freightRevenueInput != null && (
+            <div className="col-span-2">
+              <span className="text-gray-500">Megadott bevétel:</span>{" "}
+              <span className="font-medium">
+                {calc.freightRevenueInput.toLocaleString("hu-HU")} {calc.freightRevenueCurrency === "eur" ? "EUR" : "LEI"} ({calc.freightRevenueIsGross ? "bruttó" : "nettó"})
+              </span>
+            </div>
+          )}
         </div>
       </div>
 

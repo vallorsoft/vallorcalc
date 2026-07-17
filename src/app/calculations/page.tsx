@@ -35,8 +35,15 @@ export default async function CalculationsPage() {
               <Link key={c.id} href={`/calculations/${c.id}`} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-semibold text-gray-900">
-                      {c.name || `${c.truck.name} + ${c.trailer.name}`}
+                    <div className="flex items-center gap-2">
+                      {c.serialNo && (
+                        <span className="text-xs font-mono font-semibold text-blue-700 bg-blue-50 border border-blue-100 rounded px-1.5 py-0.5">
+                          #{c.serialNo}
+                        </span>
+                      )}
+                      <div className="font-semibold text-gray-900">
+                        {c.name || `${c.truck.name} + ${c.trailer.name}`}
+                      </div>
                     </div>
                     <div className="text-sm text-gray-500 mt-0.5">
                       {c.drivers.map((d) => d.driver.name).join(", ")} •{" "}
