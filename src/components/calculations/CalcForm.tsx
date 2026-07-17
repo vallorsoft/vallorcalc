@@ -318,8 +318,8 @@ export function CalcForm({ trucks, trailers, drivers, pairings, settings, totalT
       <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
         <label className="label">Bevétel / Fuvar díj – opcionális</label>
         <div className="flex gap-2">
-          <input type="number" value={freightRevenue} onChange={(e) => setFreightRevenue(e.target.value)} className="input flex-1" placeholder="Ha megadod, profit/veszteség is megjelenik" />
-          <select value={freightCurrency} onChange={(e) => setFreightCurrency(e.target.value as "lei" | "eur")} className="input w-24">
+          <input type="number" value={freightRevenue} onChange={(e) => setFreightRevenue(e.target.value)} className="input flex-1 min-w-0" placeholder="Összeg" />
+          <select value={freightCurrency} onChange={(e) => setFreightCurrency(e.target.value as "lei" | "eur")} className="input w-20 shrink-0 text-sm">
             <option value="lei">LEI</option>
             <option value="eur">EUR</option>
           </select>
